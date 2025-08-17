@@ -3,16 +3,19 @@
 #include "cli.h"
 #include "options.h"
 #include "utils/status.h"
+#include "interpreter.h"
 
 extern netdog_options netdog_opt;
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
 
-    generic_status parse_status = parseArguments(argc, argv);
+    generic_status parse_status = parse_arguments(argc, argv);
 
     if (parse_status.return_status != 0) {
         printf("Error while parsing arguments: %s\n", parse_status.message);
     }
 
-    printf("Port %d\n", netdog_opt.port);
+    printf("Server listening to port %d\n", netdog_opt.port);
+
+    execute_options();
 }

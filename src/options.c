@@ -1,3 +1,3 @@
 #include "options.h"
 
-netdog_options netdog_opt;
+netdog_options netdog_opt = { 0 };
