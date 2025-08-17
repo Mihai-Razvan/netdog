@@ -4,4 +4,7 @@ project(netdog C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(netdog
-    src/main.c)
+    src/main.c src/options.c src/cli.c
+)
+
+target_include_directories(netdog PRIVATE include)
