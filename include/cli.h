@@ -3,6 +3,8 @@
 
 #include "utils/status.h"
 
-generic_status parseArguments(int argc, char* argv[]);
+generic_status parse_arguments(int argc, const char* argv[]);
+static generic_status parse_single_arguments(const char* argv[], int flag_index);
+static generic_status parse_double_arguments(int argc, const char* argv[], int flag_index);
 
 #endif //CLI_H
