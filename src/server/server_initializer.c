@@ -1,7 +1,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #include "server/server_initializer.h"
+
+#include <unistd.h>
+
 #include "options.h"
 
 #define CONNECTION_QUEUE_LIMIT 10

@@ -5,32 +5,36 @@
 #include <pthread.h>
 
 #include "server/server_runner.h"
+#include "options.h"
 #include "server/server_client_runner.h"
+
+extern netdog_options netdog_opt;
 
 void wait_connections(int server_socketfd) {
     while (1) {
         socklen_t sockaddr_size = sizeof(struct sockaddr_in);
 
-        struct sockaddr_in client_addr = { 0 };
-        int clientfd = accept(server_socketfd, (struct sockaddr*) &client_addr, &sockaddr_size);
+        struct sockaddr_in* client_addr = malloc(sizeof(struct sockaddr_in));
+        int clientfd = accept(server_socketfd, (struct sockaddr*) client_addr, &sockaddr_size);
 
         if (clientfd < 0) {
             // handle error
             printf("Failed to create client fd");
         }
 
-        initiate_client(clientfd);
+        initiate_client(clientfd, client_addr);
     }
 }
 
-static void initiate_client(int clientfd) {
+static void initiate_client(int clientfd, struct sockaddr_in* client_addr) {
     printf("Client connection received. Client fd: %d\n", clientfd);
 
-    int *clientfd_copy = malloc(sizeof(int));
-    *clientfd_copy = clientfd;
-    pthread_t *client_thread = malloc(sizeof(pthread_t));
-    pthread_create(client_thread, NULL, handle_client, clientfd_copy);
-    pthread_detach(*client_thread);
+    // This is freed in the handle_client method
+    server_client_thread_info* thread_client_info = malloc(sizeof(server_client_thread_info));
+    thread_client_info->fd = clientfd;
+    thread_client_info->addr = client_addr;
 
-    free(client_thread);
+    pthread_t client_thread;
+    pthread_create(&client_thread, NULL, handle_client, thread_client_info);
+    pthread_detach(client_thread);
 }

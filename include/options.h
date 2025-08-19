@@ -6,6 +6,7 @@
 typedef struct {
     bool is_server;
     int port;
+    char *command;
 } netdog_options;
 
 #endif //OPTIONS_H

@@ -11,7 +11,7 @@ add_executable(netdog
         include/server/server_runner.h
         src/server/server_runner.c
         include/server/server_client_runner.h
-        src/server/client_server_runner.c
+        src/server/server_client_runner.c
 )
 
 target_include_directories(netdog PRIVATE include)

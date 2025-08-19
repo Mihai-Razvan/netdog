@@ -65,6 +65,9 @@ static generic_status parse_double_arguments(int argc, const char* argv[], int f
     if (strcmp(flag, "-p") == 0) {
         int value = atoi(argv[flag_index + 1]);
         netdog_opt.port = value;
+    } else  if (strcmp(flag, "-e") == 0) {
+        char *value = argv[flag_index + 1];
+        netdog_opt.command = value;
     } else {
         return (generic_status) { .return_status = PARSING_NO_EVALUATION };
     }
