@@ -4,6 +4,6 @@
 #include <sys/socket.h>
 
 void wait_connections(int server_socketfd);
-static void initiate_client(int clientfd, struct sockaddr_in*);
+static void create_client_thread(int clientfd, struct sockaddr_in*);
 
 #endif //SERVER_RUNNER_H

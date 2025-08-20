@@ -8,7 +8,15 @@ typedef struct {
     struct sockaddr_in* addr;
 } server_client_thread_info;
 
-void * handle_client(void *attr);
+typedef struct {
+    int communicationfd;
+    int socketfd;
+    struct sockaddr_in *client_addr;
+} server_client_communication_info;
+
+void handle_client(void *attr);
+static void handle_reading_thread(void *attr);
+static void handle_writing_thread(void *attr);
 static void execute_command(int* server_thread_infd, int* server_thread_outfd);
 static void execute_command_parent(int* server_thread_infd, int* server_thread_outfd, int in_pipe[2], int out_pipe[2]);
 static void execute_command_child(int in_pipe[2], int out_pipe[2]);

@@ -22,11 +22,11 @@ void wait_connections(int server_socketfd) {
             printf("Failed to create client fd");
         }
 
-        initiate_client(clientfd, client_addr);
+        create_client_thread(clientfd, client_addr);
     }
 }
 
-static void initiate_client(int clientfd, struct sockaddr_in* client_addr) {
+static void create_client_thread(int clientfd, struct sockaddr_in* client_addr) {
     printf("Client connection received. Client fd: %d\n", clientfd);
 
     // This is freed in the handle_client method
