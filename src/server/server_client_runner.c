@@ -4,13 +4,13 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include <fcntl.h>
 #include <errno.h>
 
 #include "options.h"
+#include "utils/comm_utils.h"
 #include "server/server_client_runner.h"
 
-#define READ_BUFFER_SIZE 16384
+#define BUFFER_SIZE 16384
 #define SUCCESS 0
 #define ERROR (-1)
 
@@ -38,10 +38,10 @@ void handle_client(void *attr) {
         }
     }
 
-    char *buffer = malloc(READ_BUFFER_SIZE);
+    char *buffer = malloc(BUFFER_SIZE);
 
     while (1) {
-        ssize_t read_bytes = read(clientfd, buffer, READ_BUFFER_SIZE);
+        ssize_t read_bytes = read(clientfd, buffer, BUFFER_SIZE);
         if (read_bytes > 0) {
             write(server_thread_outfd, buffer, read_bytes);
         } else if (read_bytes == 0) {
@@ -52,7 +52,7 @@ void handle_client(void *attr) {
             break;
         }
 
-        read_bytes = read(server_thread_infd, buffer, READ_BUFFER_SIZE);
+        read_bytes = read(server_thread_infd, buffer, BUFFER_SIZE);
         if (read_bytes > 0) {
             ssize_t sent_bytes = write(clientfd, buffer, read_bytes);
             if (sent_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
@@ -82,21 +82,6 @@ static void close_connection(int fds_count, int fds[], int buffers_count, char* 
     }
 
     printf("Closed connection for client fd %d\n", fds[0]);
-}
-
-static int set_fd_nonblocking(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags < 0) {
-        printf("Failed to get fd flags for fd %d\n", fd);
-        return ERROR;
-    }
-
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK)) {
-        printf("Failed to set the fd as non-blocking for fd %d\n", fd);
-        return ERROR;
-    }
-
-    return SUCCESS;
 }
 
 static int execute_command(int* server_thread_infd, int* server_thread_outfd) {

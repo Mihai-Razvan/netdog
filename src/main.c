@@ -15,7 +15,5 @@ int main(int argc, const char* argv[]) {
         printf("Error while parsing arguments: %s\n", parse_status.message);
     }
 
-    printf("Server listening to port %d; command executed %s\n", netdog_opt.port, netdog_opt.command);
-
     execute_options();
 }

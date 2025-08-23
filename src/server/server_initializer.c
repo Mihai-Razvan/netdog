@@ -1,12 +1,10 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 
+#include "utils/comm_utils.h"
 #include "server/server_initializer.h"
-
-#include <unistd.h>
-
 #include "options.h"
 
 #define CONNECTION_QUEUE_LIMIT 10
@@ -17,7 +15,8 @@ int initialize_server() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (server_socketfd < 0) {
-        // handle error
+        printf("Failed to create server fd\n");
+        exit(1);
     }
 
     struct sockaddr_in server_addr = { 0 };
@@ -27,17 +26,14 @@ int initialize_server() {
 
     if (bind(server_socketfd, (struct sockaddr*) &server_addr,
         sizeof(struct sockaddr_in)) < 0) {
-        // handle error
+        printf("Failed to initialize bind server to port \n");
+        exit(1);
     }
 
     if (listen(server_socketfd, CONNECTION_QUEUE_LIMIT) < 0) {
-        // handle error
+        printf("Failed to put the server in listening mode\n");
+        exit(1);
     }
 
     return server_socketfd;
-}
-
-static int compute_server_port() {
-    int port = netdog_opt.port != 0 ? netdog_opt.port : 8080;
-    return htons(port);
 }

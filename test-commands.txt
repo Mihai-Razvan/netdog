@@ -1,0 +1,2 @@
+./netdog -l -p 4444 -e /bin/bash
+./netdog -p 4444
