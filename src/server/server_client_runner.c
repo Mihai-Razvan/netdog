@@ -1,121 +1,126 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "options.h"
 #include "server/server_client_runner.h"
 
 #define READ_BUFFER_SIZE 16384
+#define SUCCESS 0
+#define ERROR (-1)
 
 extern netdog_options netdog_opt;
 
 void handle_client(void *attr) {
     server_client_thread_info* client_thread_info = attr;
     int clientfd = client_thread_info->fd;
-    struct sockaddr_in *client_addr = client_thread_info->addr;
     free(attr);
+
+    set_fd_nonblocking(clientfd);
 
     int server_thread_infd = -1;
     int server_thread_outfd = STDOUT_FILENO;
 
     if (netdog_opt.command != NULL) {
-        execute_command(&server_thread_infd, &server_thread_outfd);
+        if (execute_command(&server_thread_infd, &server_thread_outfd) < 0) {
+            close_connection(3, (int[]) { clientfd, server_thread_infd, server_thread_outfd }, 0,  (char* []) {});
+        }
     }
 
-    // This is freed in the handle_writing_thread method
-    server_client_communication_info* write_com_info = malloc(sizeof(server_client_communication_info));
-    write_com_info->communicationfd = server_thread_infd;
-    write_com_info->socketfd = clientfd;
-    write_com_info->client_addr = client_addr;
-    pthread_t write_thread;
-    pthread_create(&write_thread, NULL, handle_writing_thread, write_com_info);
-    pthread_detach(write_thread);
-
-    // This is freed in the handle_reading_thread method
-    server_client_communication_info* read_com_info = malloc(sizeof(server_client_communication_info));
-    read_com_info->communicationfd = server_thread_outfd;
-    read_com_info->socketfd = clientfd;
-    read_com_info->client_addr = client_addr;
-    pthread_t read_thread;
-    pthread_create(&read_thread, NULL, handle_reading_thread, read_com_info);
-    pthread_detach(read_thread);
-}
-
-static void handle_writing_thread(void *attr) {
-    server_client_communication_info* read_com_info = attr;
-    int server_thread_infd = read_com_info->communicationfd;
-    int clientfd = read_com_info->socketfd;
-    struct sockaddr_in *client_addr  = read_com_info->client_addr;
-    free(attr);
+    if (server_thread_infd >= 0) {
+        if (set_fd_nonblocking(server_thread_infd) < 0) {
+            close_connection(3, (int[]) { clientfd, server_thread_infd, server_thread_outfd }, 0,  (char* []) {});
+        }
+    }
 
     char *buffer = malloc(READ_BUFFER_SIZE);
 
     while (1) {
-        if (server_thread_infd < 0) {
-            continue;
-        }
-
-        ssize_t read_bytes = read(server_thread_infd, buffer, READ_BUFFER_SIZE);
-        ssize_t sent_bytes = sendto(clientfd, buffer, read_bytes, 0, (struct sockaddr*) client_addr, sizeof(struct sockaddr_in));
-        if (sent_bytes < 0) { // It means the socket was closed, so communication ended
+        ssize_t read_bytes = read(clientfd, buffer, READ_BUFFER_SIZE);
+        if (read_bytes > 0) {
+            write(server_thread_outfd, buffer, read_bytes);
+        } else if (read_bytes == 0) {
+            printf("Connection was closed by client for fd %d\n", clientfd);
             break;
-        }
-    }
-
-    free(buffer);
-}
-
-static void handle_reading_thread(void *attr) {
-    server_client_communication_info* read_com_info = attr;
-    int server_thread_outfd = read_com_info->communicationfd;
-    int clientfd = read_com_info->socketfd;
-    free(attr);
-
-    char *buffer = malloc(READ_BUFFER_SIZE);
-
-    while (1) {
-        ssize_t read_bytes = recv(clientfd, buffer, READ_BUFFER_SIZE, 0);
-        if (read_bytes < 0) {
+        } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
             printf("Failed to read from buffer for client fd %d\n", clientfd);
             break;
         }
 
-        // The client closed the connection
-        if (read_bytes <= 0) {
+        read_bytes = read(server_thread_infd, buffer, READ_BUFFER_SIZE);
+        if (read_bytes > 0) {
+            ssize_t sent_bytes = write(clientfd, buffer, read_bytes);
+            if (sent_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
+                printf("Error when sending bytes to client fd %d\n", clientfd);
+                break;
+            }
+        } else if (read_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
+            printf("Failed to read from buffer for server thread in fd %d\n", server_thread_infd);
             break;
         }
-
-        write(server_thread_outfd, buffer, read_bytes);
     }
 
-    close(clientfd);
-    free(buffer);
-    printf("Closed connection for client fd %d\n", clientfd);
+    close_connection(3, (int[]) { clientfd, server_thread_infd, server_thread_outfd }, 1,  (char* []) { buffer });
 }
 
-static void execute_command(int* server_thread_infd, int* server_thread_outfd) {
+static void close_connection(int fds_count, int fds[], int buffers_count, char* buffers[]) {
+
+    shutdown(fds[0], SHUT_RDWR);
+    close(fds[0]);
+
+    for (int i = 1; i < fds_count; i++) {
+        close(fds[i]);
+    }
+
+    for (int i = 0; i < buffers_count; i++) {
+        free(buffers[i]);
+    }
+
+    printf("Closed connection for client fd %d\n", fds[0]);
+}
+
+static int set_fd_nonblocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) {
+        printf("Failed to get fd flags for fd %d\n", fd);
+        return ERROR;
+    }
+
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK)) {
+        printf("Failed to set the fd as non-blocking for fd %d\n", fd);
+        return ERROR;
+    }
+
+    return SUCCESS;
+}
+
+static int execute_command(int* server_thread_infd, int* server_thread_outfd) {
     // Parent = server process --- Child = process executing given command
     int in_pipe[2]; // Parent reads, child writes
     int out_pipe[2]; // Parent writes, child reads
     if (pipe(in_pipe) < 0 || pipe(out_pipe) < 0) {
-        // handle error
+        printf("Failed to open pipes\n");
+        return ERROR;
     }
 
     pid_t pid = fork();
     if (pid < 0) {
-         printf("Failed to fork\n");
+        printf("Failed to fork\n");
+        return ERROR;
     }
 
     if (pid == 0) {
         execute_command_child(in_pipe, out_pipe);
     } else {
         execute_command_parent(server_thread_infd, server_thread_outfd, in_pipe, out_pipe);
-   //     wait(&pid);
     }
+
+    return SUCCESS;
 }
 
 static void execute_command_parent(int* server_thread_infd, int* server_thread_outfd, int in_pipe[2], int out_pipe[2]) {

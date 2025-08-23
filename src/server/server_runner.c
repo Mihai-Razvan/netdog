@@ -18,8 +18,7 @@ void wait_connections(int server_socketfd) {
         int clientfd = accept(server_socketfd, (struct sockaddr*) client_addr, &sockaddr_size);
 
         if (clientfd < 0) {
-            // handle error
-            printf("Failed to create client fd");
+            printf("Failed to create client fd\n");
         }
 
         create_client_thread(clientfd, client_addr);

@@ -15,9 +15,9 @@ typedef struct {
 } server_client_communication_info;
 
 void handle_client(void *attr);
-static void handle_reading_thread(void *attr);
-static void handle_writing_thread(void *attr);
-static void execute_command(int* server_thread_infd, int* server_thread_outfd);
+static int set_fd_nonblocking(int fd);
+static void close_connection(int fds_count, int fds[], int buffers_count, char *buffers[]);
+static int execute_command(int* server_thread_infd, int* server_thread_outfd);
 static void execute_command_parent(int* server_thread_infd, int* server_thread_outfd, int in_pipe[2], int out_pipe[2]);
 static void execute_command_child(int in_pipe[2], int out_pipe[2]);
 
