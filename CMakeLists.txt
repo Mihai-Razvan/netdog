@@ -21,3 +21,4 @@ add_executable(netdog
 )
 
 target_include_directories(netdog PRIVATE include)
+set_target_properties(netdog PROPERTIES OUTPUT_NAME "nd")

@@ -1,2 +1,4 @@
-./netdog -l -p 4444 -e /bin/bash
-./netdog -p 4444
+./nd -l -p 4444 -e /bin/bash
+./nd -p 4444
+./nd -a 127.0.0.1 -p 4444
+./nd -h www.geeksforgeeks.org -p 443

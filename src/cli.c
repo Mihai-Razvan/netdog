@@ -63,11 +63,13 @@ static generic_status parse_double_arguments(int argc, const char* argv[], int f
     }
 
     if (strcmp(flag, "-p") == 0) {
-        int value = atoi(argv[flag_index + 1]);
-        netdog_opt.port = value;
+        netdog_opt.port = atoi(argv[flag_index + 1]);
     } else  if (strcmp(flag, "-e") == 0) {
-        char *value = argv[flag_index + 1];
-        netdog_opt.command = value;
+        netdog_opt.command = argv[flag_index + 1];
+    } else if (strcmp(flag, "-a") == 0) {
+        netdog_opt.ip_address = argv[flag_index + 1];
+    } else if (strcmp(flag, "-h") == 0) {
+        netdog_opt.hostname = argv[flag_index + 1];
     } else {
         return (generic_status) { .return_status = PARSING_NO_EVALUATION };
     }
