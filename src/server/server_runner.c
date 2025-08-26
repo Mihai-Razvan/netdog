@@ -7,6 +7,7 @@
 #include "server/server_runner.h"
 #include "options.h"
 #include "server/server_client_runner.h"
+#include "utils/comm_utils.h"
 
 extern netdog_options netdog_opt;
 
@@ -18,16 +19,15 @@ void wait_connections(int server_socketfd) {
         int clientfd = accept(server_socketfd, (struct sockaddr*) client_addr, &sockaddr_size);
 
         if (clientfd < 0) {
-            printf("Failed to create client fd\n");
+            verbose_message("Failed to create client fd\n");
         }
 
+        verbose_message("Client connection received. Client fd: %d\n", clientfd);
         create_client_thread(clientfd, client_addr);
     }
 }
 
 static void create_client_thread(int clientfd, struct sockaddr_in* client_addr) {
-    printf("Client connection received. Client fd: %d\n", clientfd);
-
     // This is freed in the handle_client method
     server_client_thread_info* thread_client_info = malloc(sizeof(server_client_thread_info));
     thread_client_info->fd = clientfd;

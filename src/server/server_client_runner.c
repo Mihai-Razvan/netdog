@@ -45,10 +45,10 @@ void handle_client(void *attr) {
         if (read_bytes > 0) {
             write(server_thread_outfd, buffer, read_bytes);
         } else if (read_bytes == 0) {
-            printf("Connection was closed by client for fd %d\n", clientfd);
+            verbose_message("Connection was closed by client for fd %d\n", clientfd);
             break;
         } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            printf("Failed to read from buffer for client fd %d\n", clientfd);
+            verbose_message("Failed to read from buffer for client fd %d\n", clientfd);
             break;
         }
 
@@ -56,11 +56,11 @@ void handle_client(void *attr) {
         if (read_bytes > 0) {
             ssize_t sent_bytes = write(clientfd, buffer, read_bytes);
             if (sent_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
-                printf("Error when sending bytes to client fd %d\n", clientfd);
+                verbose_message("Error when sending bytes to client fd %d\n", clientfd);
                 break;
             }
         } else if (read_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
-            printf("Failed to read from buffer for server thread in fd %d\n", server_thread_infd);
+            verbose_message("Failed to read from buffer for server thread in fd %d\n", server_thread_infd);
             break;
         }
     }
@@ -81,7 +81,7 @@ static void close_connection(int fds_count, int fds[], int buffers_count, char* 
         free(buffers[i]);
     }
 
-    printf("Closed connection for client fd %d\n", fds[0]);
+    verbose_message("Closed connection for client fd %d\n", fds[0]);
 }
 
 static int execute_command(int* server_thread_infd, int* server_thread_outfd) {
@@ -89,13 +89,11 @@ static int execute_command(int* server_thread_infd, int* server_thread_outfd) {
     int in_pipe[2]; // Parent reads, child writes
     int out_pipe[2]; // Parent writes, child reads
     if (pipe(in_pipe) < 0 || pipe(out_pipe) < 0) {
-        printf("Failed to open pipes\n");
         return ERROR;
     }
 
     pid_t pid = fork();
     if (pid < 0) {
-        printf("Failed to fork\n");
         return ERROR;
     }
 

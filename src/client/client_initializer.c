@@ -3,13 +3,11 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
-#include "utils/comm_utils.h"
-#include "client/client_initializer.h"
-
 #include <string.h>
 #include <arpa/inet.h>
 
+#include "utils/comm_utils.h"
+#include "client/client_initializer.h"
 #include "options.h"
 
 extern netdog_options netdog_opt;
@@ -18,7 +16,7 @@ int initialize_client() {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (socketfd < 0) {
-        printf("Failed to create client fd\n");
+        verbose_message("Failed to create client fd\n");
         exit(1);
     }
 
@@ -29,7 +27,7 @@ int initialize_client() {
 
     if (netdog_opt.ip_address != NULL) {
         if (inet_pton(AF_INET, netdog_opt.ip_address, &server_addr.sin_addr) <= 0) {
-            printf("Invalid ip address\n");
+            verbose_message("Invalid ip address\n");
             exit(1);
         }
     }
@@ -39,10 +37,11 @@ int initialize_client() {
     }
 
     if (connect(socketfd, (struct sockaddr*) &server_addr, sizeof(struct sockaddr_in))) {
-        printf("Failed to connect client\n");
+        verbose_message("Failed to connect client\n");
         exit(1);
     }
 
+    verbose_message("Connected to to: %s:%d\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     return socketfd;
 }
 
@@ -55,12 +54,12 @@ struct sockaddr_in* resolve_hostname() {
         for (struct addrinfo *rp = address; rp != NULL; rp = rp->ai_next) {
             if (rp->ai_family == AF_INET) {
                 struct sockaddr_in* addr = (struct sockaddr_in*) rp->ai_addr;
-                printf("Resolved: %s:%d\n", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
+                verbose_message("Resolved hostname to: %s:%d\n", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
                 return addr;
             }
         }
     }
 
-    printf("Failed to resolve hostname\n");
+    verbose_message("Failed to resolve hostname\n");
     exit(1);
 }

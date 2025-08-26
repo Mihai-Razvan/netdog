@@ -5,6 +5,7 @@
 
 typedef struct {
     bool is_server;
+    bool verbose;
     int port;
     char *command;
     char *ip_address;

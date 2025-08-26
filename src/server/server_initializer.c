@@ -15,7 +15,7 @@ int initialize_server() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (server_socketfd < 0) {
-        printf("Failed to create server fd\n");
+        verbose_message("Failed to create server fd\n");
         exit(1);
     }
 
@@ -26,14 +26,16 @@ int initialize_server() {
 
     if (bind(server_socketfd, (struct sockaddr*) &server_addr,
         sizeof(struct sockaddr_in)) < 0) {
-        printf("Failed to initialize bind server to port \n");
+        verbose_message("Failed to initialize bind server to port \n");
         exit(1);
     }
 
     if (listen(server_socketfd, CONNECTION_QUEUE_LIMIT) < 0) {
-        printf("Failed to put the server in listening mode\n");
+        verbose_message("Failed to put the server in listening mode\n");
         exit(1);
     }
+
+    verbose_message("Listening to port %d\n", ntohs(server_addr.sin_port));
 
     return server_socketfd;
 }

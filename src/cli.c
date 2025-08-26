@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "utils/status.h"
 #include "cli.h"
@@ -48,6 +47,8 @@ static generic_status parse_single_arguments(const char* argv[], int flag_index)
 
     if (strcmp(flag, "-l") == 0) {
         netdog_opt.is_server = true;
+    } else if (strcmp(flag, "-v") == 0) {
+        netdog_opt.verbose = true;
     } else {
         return (generic_status) { .return_status = PARSING_NO_EVALUATION };
     }

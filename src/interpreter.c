@@ -2,7 +2,6 @@
 #include "options.h"
 #include "server/server_initializer.h"
 #include "server/server_runner.h"
-#include "stdio.h"
 #include "client/client_initializer.h"
 #include "client/client_runner.h"
 

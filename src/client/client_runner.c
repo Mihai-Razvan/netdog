@@ -24,10 +24,10 @@ void run_client(int socketfd) {
         if (read_bytes > 0) {
             write(STDOUT_FILENO, buffer, read_bytes);
         } else if (read_bytes == 0) {
-            printf("Connection with server was closed\n");
+            verbose_message("Connection with server was closed\n");
             break;
         } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            printf("Failed to read from buffer\n");
+            verbose_message("Failed to read from buffer\n");
             break;
         }
 
@@ -35,11 +35,11 @@ void run_client(int socketfd) {
         if (read_bytes > 0) {
             ssize_t sent_bytes = write(socketfd, buffer, read_bytes);
             if (sent_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
-                printf("Error when sending bytes to server\n");
+                verbose_message("Error when sending bytes to server\n");
                 break;
             }
         } else if (read_bytes < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) {
-            printf("Failed to read from terminal\n");
+            verbose_message("Failed to read from terminal\n");
             break;
         }
     }
@@ -47,4 +47,6 @@ void run_client(int socketfd) {
     shutdown(socketfd, SHUT_RDWR);
     close(socketfd);
     free(buffer);
+
+    verbose_message("Closed connection with server\n");
 }

@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <netinet/in.h>
 
 #include "utils/comm_utils.h"
@@ -18,14 +19,23 @@ int compute_server_port() {
 int set_fd_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) {
-        printf("Failed to get fd flags for fd %d\n", fd);
+        verbose_message("Failed to get fd flags for fd %d\n", fd);
         return ERROR;
     }
 
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK)) {
-        printf("Failed to set the fd as non-blocking for fd %d\n", fd);
+        verbose_message("Failed to set the fd as non-blocking for fd %d\n", fd);
         return ERROR;
     }
 
     return SUCCESS;
+}
+
+void verbose_message(const char *format, ...) {
+    if (netdog_opt.verbose) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
 }
