@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "utils/status.h"
 #include "cli.h"
@@ -49,6 +50,8 @@ static generic_status parse_single_arguments(const char* argv[], int flag_index)
         netdog_opt.is_server = true;
     } else if (strcmp(flag, "-v") == 0) {
         netdog_opt.verbose = true;
+    } else if (strcmp(flag, "-help") == 0) {
+        print_help();
     } else {
         return (generic_status) { .return_status = PARSING_NO_EVALUATION };
     }
@@ -76,4 +79,19 @@ static generic_status parse_double_arguments(int argc, const char* argv[], int f
     }
 
     return (generic_status) { .return_status = PARSING_SUCCESS };
+}
+
+static void print_help() {
+    printf("\n");
+    printf("Usage: nd [options]\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("  -l                 Run in server mode and listen for incoming connections\n");
+    printf("  -v                 Enable verbose output\n");
+    printf("  -p <port>          Specify the port to listen on (server) or connect to (client)\n");
+    printf("  -e <command>       Execute a command upon connection (e.g., /bin/bash)\n");
+    printf("  -a <ip_address>    Connect to a specific IP address (client mode)\n");
+    printf("  -h <hostname>      Connect to a hostname (client mode)\n");
+    printf("  -help              Show the man page\n");
+    printf("\n");
 }
