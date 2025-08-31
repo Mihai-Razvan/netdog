@@ -10,7 +10,11 @@ extern netdog_options netdog_opt;
 void execute_options() {
     if (netdog_opt.is_server) {
         int server_socketfd = initialize_server();
-        wait_connections(server_socketfd);
+        if (netdog_opt.is_udp) {
+            wait_udp_connections(server_socketfd);
+        } else {
+            wait_tcp_connections(server_socketfd);
+        }
     } else {
         int client_socketfd = initialize_client();
         run_client(client_socketfd);

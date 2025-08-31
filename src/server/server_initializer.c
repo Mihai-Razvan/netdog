@@ -12,7 +12,8 @@
 extern netdog_options netdog_opt;
 
 int initialize_server() {
-    int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    int socket_type = netdog_opt.is_udp ? SOCK_DGRAM : SOCK_STREAM;
+    int server_socketfd = socket(AF_INET, socket_type, 0);
 
     if (server_socketfd < 0) {
         verbose_message("Failed to create server fd\n");
@@ -30,7 +31,8 @@ int initialize_server() {
         exit(1);
     }
 
-    if (listen(server_socketfd, CONNECTION_QUEUE_LIMIT) < 0) {
+    // We need to listen only for TCP connections
+    if (socket_type == SOCK_STREAM && listen(server_socketfd, CONNECTION_QUEUE_LIMIT) < 0) {
         verbose_message("Failed to put the server in listening mode\n");
         exit(1);
     }

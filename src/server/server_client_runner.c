@@ -68,6 +68,18 @@ void handle_client(void *attr) {
     close_connection(3, (int[]) { clientfd, server_thread_infd, server_thread_outfd }, 1,  (char* []) { buffer });
 }
 
+void handle_udp_request(int serverfd) {
+    char *buffer = malloc(BUFFER_SIZE);
+    ssize_t read_bytes = read(serverfd, buffer, BUFFER_SIZE);
+    if (read_bytes > 0) {
+        write(STDOUT_FILENO, buffer, read_bytes);
+    } else {
+        verbose_message("Failed to read from buffer\n");
+    }
+
+    free(buffer);
+}
+
 static void close_connection(int fds_count, int fds[], int buffers_count, char* buffers[]) {
 
     shutdown(fds[0], SHUT_RDWR);

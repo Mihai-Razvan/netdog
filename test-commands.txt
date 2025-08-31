@@ -2,4 +2,7 @@
 ./nd -v -p 4444
 ./nd -a 127.0.0.1 -p 4444
 ./nd -v -h www.geeksforgeeks.org -p 443
+
+./nd -v -u -p 4444
+
 ./nd -help

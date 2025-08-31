@@ -50,6 +50,8 @@ static generic_status parse_single_arguments(const char* argv[], int flag_index)
         netdog_opt.is_server = true;
     } else if (strcmp(flag, "-v") == 0) {
         netdog_opt.verbose = true;
+    } else if (strcmp(flag, "-u") == 0) {
+        netdog_opt.is_udp = true;
     } else if (strcmp(flag, "-help") == 0) {
         print_help();
     } else {
@@ -88,6 +90,7 @@ static void print_help() {
     printf("Options:\n");
     printf("  -l                 Run in server mode and listen for incoming connections\n");
     printf("  -v                 Enable verbose output\n");
+    printf("  -u                 Use UDP sockets\n");
     printf("  -p <port>          Specify the port to listen on (server) or connect to (client)\n");
     printf("  -e <command>       Execute a command upon connection (e.g., /bin/bash)\n");
     printf("  -a <ip_address>    Connect to a specific IP address (client mode)\n");

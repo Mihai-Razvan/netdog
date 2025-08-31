@@ -11,7 +11,7 @@
 
 extern netdog_options netdog_opt;
 
-void wait_connections(int server_socketfd) {
+void wait_tcp_connections(int server_socketfd) {
     while (1) {
         socklen_t sockaddr_size = sizeof(struct sockaddr_in);
 
@@ -24,6 +24,12 @@ void wait_connections(int server_socketfd) {
 
         verbose_message("Client connection received. Client fd: %d\n", clientfd);
         create_client_thread(clientfd, client_addr);
+    }
+}
+
+void wait_udp_connections(int server_socketfd) {
+    while (1) {
+        handle_udp_request(server_socketfd);
     }
 }
 
