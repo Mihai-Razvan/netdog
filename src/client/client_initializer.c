@@ -13,7 +13,8 @@
 extern netdog_options netdog_opt;
 
 int initialize_client() {
-    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    int socket_type = netdog_opt.is_udp ? SOCK_DGRAM : SOCK_STREAM;
+    int socketfd = socket(AF_INET, socket_type, 0);
 
     if (socketfd < 0) {
         verbose_message("Failed to create client fd\n");
